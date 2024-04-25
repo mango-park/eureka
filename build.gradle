@@ -1,38 +1,90 @@
-plugins{
-    id 'org.springframework.boot' version '3.1.0'
-    id 'io.spring.dependency-management' version '1.1.0'
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:3.1.1")
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE"
+        //classpath "com.spotify.docker:1.2.2"
+    }
+}
+
+plugins {
     id 'java'
 }
 
-ext {
-    set('springCloudVersion', "2022.0.3")
-    name = 'Eureka Server'
-    description = 'Eureka Server demo project' 
-    version='0.0.1-SNAPSHOT'
-    sourceEncoding='UTF-8'
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+//apply plugin: "com.spotify.docker"
+
+group = 'org.demo'
+version = '0.0.1-SNAPSHOT'
+description = 'Eureka Server demo project'
+
+
+java {
+    sourceCompatibility = '17'
 }
 
 repositories {
-    jcenter()
-    maven { url 'https://repo.spring.io/release/' }
-    maven { url "https://repo.spring.io/libs-snapshot-local" }
-    maven { url "https://repo.spring.io/libs-milestone-local" }
-    maven { url "https://repo.spring.io/libs-release-local" }
-}
-
-dependencyManagement {
-	imports { 
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-	}
+    mavenCentral()
+    maven { url 'https://plugins.gradle.org/m2/' }
 }
 
 dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
-
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-test{
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2022.0.3'
+    }
+}
+
+test {
     useJUnitPlatform()
 }
 
+//docker {
+//    baseImage = 'openjdk:17-jdk-alpine'
+//    imageName = "${project.group}/${project.name}"
+//    exposePorts = 8761
+//    entryPoint = ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/${jar.archivePath.get()}"]
+//    withResources {
+//        resources {
+//            from(buildDir) {
+//                include "${jar.archiveFileName.get()}"
+//                into '/'
+//            }
+//        }
+//    }
+//}
+
+tasks.named('bootJar') {
+    enabled = true
+}
+
+//tasks.named('bootWar') {
+//    enabled = false
+//}
+
+// Skip deploy (this is just a test module)
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            mavenJava(MavenPublication) {
+//                from components.java
+//                groupId = null
+//                artifactId = null
+//                version = null
+//            }
+//        }
+//    }
+//}
